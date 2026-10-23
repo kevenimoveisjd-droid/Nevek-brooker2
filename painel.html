@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Painel · Neve Broken</title>
+<style>
+:root{--bg:#f6f9fc;--card:#fff;--ink:#12202e;--mut:#62758a;--line:#e0e8f0;--acc:#2b7de9;color-scheme:light dark}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1420;--card:#121f2f;--ink:#eaf2fb;--mut:#8fa3b8;--line:#1f3147;--acc:#5aa2ff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:980px;margin:auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+input,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+label{font-size:.8rem;color:var(--mut);display:block;margin:10px 0 4px}
+button{border:0;border-radius:999px;padding:9px 18px;background:var(--acc);color:#fff;font:inherit;cursor:pointer}
+button.g{background:none;color:var(--ink);border:1px solid var(--line)}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.it{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.th{width:64px;height:48px;object-fit:cover;border-radius:8px;background:var(--line);display:block}
+.it>div{flex:1;min-width:0}small{color:var(--mut)}
+.tabs{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
+.ph{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}.ph span{position:relative}
+.ph b{position:absolute;top:-6px;right:-6px;background:#d33;color:#fff;border-radius:50%;width:20px;height:20px;text-align:center;cursor:pointer;font-size:13px}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;border-top:1px solid var(--line);text-align:left}
+.kp{font-size:1.8rem;font-weight:700}
+</style><script>
+(()=>{const S=[
+{id:'s1',title:'Residencial Aurora',region:'Zona Sul',beds:3,baths:2,park:2,area:98,price:890000,desc:'Apartamento amplo com varanda gourmet, living integrado e acabamento de alto padrão.\n\nCondomínio com piscina, academia, coworking e salão de festas.',cover:'',photos:[],plans:[],condo:[]},
+{id:'s2',title:'Edifício Glacial',region:'Centro',beds:2,baths:1,park:1,area:64,price:520000,desc:'Projeto compacto e inteligente, perto de metrô e comércio.',cover:'',photos:[],plans:[],condo:[]},
+{id:'s3',title:'Neve Park Home',region:'Zona Oeste',beds:4,baths:4,park:3,area:156,price:1650000,desc:'Cobertura duplex com terraço e vista livre.',cover:'',photos:[],plans:[],condo:[]},
+{id:'s4',title:'Studio Cristal',region:'Centro',beds:1,baths:1,park:1,area:38,price:310000,desc:'Studio moderno, mobiliado e pronto para morar.',cover:'',photos:[],plans:[],condo:[]}];
+let A=S.slice(),L=[{name:'Maria Souza',email:'maria@email.com',phone:'(11) 98888-7777',message:'Quero agendar uma visita.',created_at:new Date().toISOString(),apt:'Residencial Aurora'}];
+const V={s1:128,s2:74,s3:51,s4:96},LD={s1:6,s2:2,s3:1,s4:3};
+const J=d=>new Response(JSON.stringify(d),{status:200,headers:{'Content-Type':'application/json'}});
+const real=window.fetch.bind(window);
+window.fetch=async(u,o={})=>{u=String(u);if(!u.startsWith('/api/'))return real(u,o);
+const p=u.split('?')[0],q=new URLSearchParams(u.split('?')[1]||''),m=o.method||'GET',b=()=>{try{return JSON.parse(o.body)}catch(e){return{}}};
+if(p==='/api/apartments'){if(m==='POST')A.unshift({...b(),id:'n'+Date.now()});else if(m==='PUT')A=A.map(a=>a.id===q.get('id')?{...b(),id:a.id}:a);else if(m==='DELETE')A=A.filter(a=>a.id!==q.get('id'));return J(m==='GET'?{apartments:A,wa:null}:{ok:1})}
+if(p==='/api/stats')return J({apts:A.map(a=>({id:a.id,title:a.title,views:V[a.id]||0,leads:LD[a.id]||0})).sort((x,y)=>y.views-x.views),home:412,leads:12,recent:L});
+if(p==='/api/upload')return J({url:await new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(o.body)})});
+if(p==='/api/lead'){const d=b();L.unshift({...d,created_at:new Date().toISOString(),apt:(A.find(a=>a.id===d.apt_id)||{}).title});return J({ok:1})}
+return J({ok:1})};
+navigator.sendBeacon=()=>true})();
+</script></head><body><main id="app"></main>
+<script>
+const $=s=>document.querySelector(s),T=h=>$('#app').innerHTML=h,brl=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}),
+esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const j=(u,m,b)=>fetch(u,{method:m||'GET',headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined}).then(async r=>{if(r.status===401){showLogin();throw 'auth'}const d=await r.json().catch(()=>({}));if(!r.ok)throw d.error||'Erro';return d});
+let apts=[],stats=null,ed=null,tab='e';
+function showLogin(){T(`<div class="card" style="max-width:360px;margin:12vh auto"><h2>Área restrita</h2><input id="pw" type="password" placeholder="Senha" onkeydown="event.key==='Enter'&&doLogin()"><p id="err" style="color:#d33"></p><button onclick="doLogin()">Entrar</button></div>`)}
+async function doLogin(){try{await j('/api/auth','POST',{password:$('#pw').value});load()}catch(e){$('#err').textContent='Senha incorreta.'}}
+async function out(){await j('/api/auth','DELETE');showLogin()}
+async function load(){try{apts=(await j('/api/apartments?t='+Date.now())).apartments;stats=await j('/api/stats');draw()}catch(e){if(e!=='auth')T('Erro: '+esc(e))}}
+function draw(){
+ const tabs=[['e','Empreendimentos'],['a','Analytics'],['l','Leads']].map(([k,l])=>`<button class="${tab===k?'':'g'}" onclick="tab='${k}';ed=null;draw()">${l}</button>`).join('');
+ T(`<div style="display:flex;justify-content:space-between;align-items:center"><h2>Painel · Neve Broken</h2><button class="g" onclick="out()">Sair</button></div><div class="tabs">${tabs}</div>`+(ed?editor():tab==='e'?list():tab==='a'?analytics():leads()))}
+function list(){const S=Object.fromEntries(stats.apts.map(s=>[s.id,s]));
+ return `<button onclick="edit()">+ Novo empreendimento</button><div class="card" style="margin-top:14px">${apts.map(a=>`<div class="it">${a.cover?`<img class="th" src="${esc(a.cover)}">`:'<i class="th"></i>'}<div><b>${esc(a.title)}</b><br><small>${esc(a.region)} · ${brl(a.price)} · ${S[a.id]?.views||0} visitas · ${S[a.id]?.leads||0} leads (30d)</small></div><button class="g" onclick="edit('${a.id}')">Editar</button><button class="g" onclick="del('${a.id}')">Excluir</button></div>`).join('')||'Nenhum empreendimento ainda.'}</div>`}
+function edit(id){ed=id?JSON.parse(JSON.stringify(apts.find(a=>a.id===id))):{title:'',region:'',beds:0,baths:0,park:0,area:0,price:0,desc:'',cover:'',photos:[],plans:[],condo:[]};draw()}
+function editor(){
+ const f=(k,l,t='text')=>`<div><label>${l}</label><input type="${t}" value="${esc(ed[k])}" oninput="ed.${k}=${t==='number'?'+this.value':'this.value'}"></div>`;
+ const im=(k,l,m)=>`<label>${l}</label><input type="file" accept="image/*" ${m?'multiple':''} onchange="upl('${k}',this)"><div class="ph">${(m?ed[k]:ed[k]?[ed[k]]:[]).map((u,i)=>`<span><img class="th" src="${esc(u)}"><b onclick="rm('${k}',${i})">×</b></span>`).join('')}</div>`;
+ return `<div class="card"><h3>${ed.id?'Editar':'Novo'} empreendimento</h3>${f('title','Nome')}<div class="row">${f('region','Região')}${f('price','Preço (R$)','number')}${f('area','Área m²','number')}</div><div class="row">${f('beds','Dormitórios','number')}${f('baths','Banheiros','number')}${f('park','Vagas','number')}</div><label>Descrição</label><textarea rows="6" oninput="ed.desc=this.value">${esc(ed.desc)}</textarea>${im('cover','Foto de capa')}${im('photos','Fotos do decorado',1)}${im('plans','Plantas',1)}${im('condo','Fotos do condomínio',1)}<p><button onclick="save()">Salvar</button> <button class="g" onclick="ed=null;draw()">Cancelar</button></p></div>`}
+const up=async f=>{const b=await createImageBitmap(f),s=Math.min(1,1800/Math.max(b.width,b.height)),c=document.createElement('canvas');c.width=b.width*s;c.height=b.height*s;c.getContext('2d').drawImage(b,0,0,c.width,c.height);
+ const bl=await new Promise(r=>c.toBlob(r,'image/jpeg',.82)),r=await fetch('/api/upload',{method:'POST',headers:{'Content-Type':'image/jpeg'},body:bl});if(!r.ok)throw r.status;return (await r.json()).url};
+async function upl(k,inp){for(const f of inp.files){try{const u=await up(f);k==='cover'?ed.cover=u:ed[k].push(u)}catch(e){alert('Falha no envio da imagem ('+e+')')}}draw()}
+function rm(k,i){k==='cover'?ed.cover='':ed[k].splice(i,1);draw()}
+async function save(){if(!ed.title||!ed.price)return alert('Informe nome e preço.');try{await j('/api/apartments'+(ed.id?'?id='+ed.id:''),ed.id?'PUT':'POST',ed);ed=null;load()}catch(e){alert(e)}}
+async function del(id){if(confirm('Excluir este empreendimento?')){await j('/api/apartments?id='+id,'DELETE');load()}}
+function analytics(){const s=stats;return `<div class="row"><div class="card"><small>Visitas no site (30 dias)</small><div class="kp">${s.home}</div></div><div class="card"><small>Leads (30 dias)</small><div class="kp">${s.leads}</div></div></div><div class="card" style="overflow-x:auto"><table><tr><th>Empreendimento<th>Visitas<th>Leads<th>Conversão</tr>${s.apts.map(a=>`<tr><td>${esc(a.title)}<td>${a.views}<td>${a.leads}<td>${a.views?(a.leads/a.views*100).toFixed(1)+'%':'–'}</tr>`).join('')}</table></div>`}
+function leads(){return `<div class="card">${stats.recent.map(l=>`<div class="it"><div><b>${esc(l.name)}</b> · ${esc(l.apt||'Geral')}<br><small>${esc(l.email)} · ${esc(l.phone)} · ${new Date(l.created_at).toLocaleString('pt-BR')}</small><br>${esc(l.message)}</div></div>`).join('')||'Nenhum lead ainda.'}</div>`}
+load();
+</script></body></html>
