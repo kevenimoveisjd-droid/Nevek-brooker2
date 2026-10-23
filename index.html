@@ -70,7 +70,15 @@ footer{text-align:center;color:var(--mut);padding:30px 20px 50px;font-size:.9rem
 .gal div{aspect-ratio:4/3;border-radius:16px;background-size:cover;background-position:center;cursor:zoom-in;transition:transform .4s;animation:up .6s both;display:grid;place-items:center;color:var(--mut);font-size:.85rem;border:1px dashed var(--line);background-color:var(--card)}
 .gal div[style*="url"]{border:0}.gal div:hover{transform:scale(1.03)}
 .desc{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px;margin:34px 0;white-space:pre-line}
-.lb{position:fixed;inset:0;background:rgba(5,10,18,.9);display:none;place-items:center;z-index:100;cursor:zoom-out}.lb.on{display:grid}.lb img{max-width:92vw;max-height:88vh;border-radius:12px}
+.lb{position:fixed;inset:0;background:#000;display:none;z-index:100}.lb.on{display:block}
+.lbcar{position:relative;width:100%;height:100%}
+.lbtrk{display:flex;width:100%;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.lbtrk::-webkit-scrollbar{display:none}
+.lbtrk>div{flex:0 0 100%;height:100%;scroll-snap-align:start;display:grid;place-items:center}
+.lbtrk img{max-width:94vw;max-height:94vh;object-fit:contain}
+.lbclose{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:14px;z-index:5;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(7,11,20,.72);color:#fff;font-size:1.1rem;line-height:1;cursor:pointer;display:grid;place-items:center}
+.lb .cnt{top:calc(env(safe-area-inset-top,0px) + 14px);left:14px;right:auto}
+@media(hover:none) and (pointer:coarse){.lb .ar{display:none}}
 /* admin */
 .modal{position:fixed;inset:0;background:rgba(5,10,18,.6);backdrop-filter:blur(6px);display:none;z-index:90;overflow:auto;padding:30px 16px}.modal.on{display:block}
 .panel{max-width:760px;margin:auto;background:var(--card);border-radius:24px;padding:28px;border:1px solid var(--line);animation:up .4s both}
@@ -224,7 +232,15 @@ navigator.sendBeacon=()=>true})();
 
 <main id="detail" class="wrap" style="display:none"></main>
 <footer>© 2026 Neve Broken · Todos os direitos reservados</footer>
-<div class="lb" id="lb" onclick="this.classList.remove('on')"><img id="lbi" alt=""><div id="lbc" class="lbc"></div></div>
+<div class="lb" id="lb">
+<div class="lbcar">
+<div class="lbtrk" id="lbtrk" onscroll="lbUpd()"></div>
+<div class="cnt" id="lbcnt">1/1</div>
+<button class="ar l" id="lbarl" onclick="lbGo(-1)" aria-label="Anterior">‹</button>
+<button class="ar r" id="lbarr" onclick="lbGo(1)" aria-label="Próxima">›</button>
+<button class="lbclose" onclick="closeLb()" aria-label="Fechar">✕</button>
+</div>
+</div>
 
 
 <script>
@@ -290,7 +306,8 @@ function tab(i,el){
  if(!arr.length){g.className='gal';g.innerHTML=`<div style="cursor:default">Em breve: ${nm}</div>`;return}
  g.className='';
  const n=arr.length;
- g.innerHTML=`<div class="car" id="car"><div class="trk" id="trk" onscroll="carUpd()">${arr.map(x=>{const u=typeof x==='string'?x:x.u,c=typeof x==='string'?'':(x.c||'');return `<div class="sl${ct?' ct':''}" style="background-image:url(${esc(px(u,900))})" data-f="${esc(px(u,1600))}" data-c="${esc(c)}" onclick="lbx(this)">${c?`<div class="cap">${esc(c)}</div>`:''}</div>`}).join('')}</div>${n>1?`<div class="cnt" id="cnt">1/${n}</div><button class="ar l" id="arl" onclick="carGo(-1)" aria-label="Anterior">‹</button><button class="ar r" id="arr" onclick="carGo(1)" aria-label="Próxima">›</button><div class="hint" id="hint">Deslize para o lado ›</div>`:''}</div>${n>1?'<div class="pbar"><i id="pb"></i></div>':''}`;
+ TABARR=arr;
+ g.innerHTML=`<div class="car" id="car"><div class="trk" id="trk" onscroll="carUpd()">${arr.map((x,i)=>{const u=typeof x==='string'?x:x.u,c=typeof x==='string'?'':(x.c||'');return `<div class="sl${ct?' ct':''}" style="background-image:url(${esc(px(u,900))})" onclick="lbOpen(${i})">${c?`<div class="cap">${esc(c)}</div>`:''}</div>`}).join('')}</div>${n>1?`<div class="cnt" id="cnt">1/${n}</div><button class="ar l" id="arl" onclick="carGo(-1)" aria-label="Anterior">‹</button><button class="ar r" id="arr" onclick="carGo(1)" aria-label="Próxima">›</button><div class="hint" id="hint">Deslize para o lado ›</div>`:''}</div>${n>1?'<div class="pbar"><i id="pb"></i></div>':''}`;
  carUpd();
 }
 function carStep(){const t=$('#trk');if(!t||!t.children.length)return 0;const c=t.children[0];return c.offsetWidth+12}
@@ -305,8 +322,33 @@ function carUpd(){
  const h=$('#hint');if(h&&t.scrollLeft>24)h.style.opacity='0';
 }
 function carGo(d){const t=$('#trk');if(t)t.scrollBy({left:d*carStep(),behavior:'smooth'})}
-function lb(u,c){$('#lbi').src=u;$('#lbc').textContent=c||'';$('#lbc').style.display=c?'block':'none';$('#lb').classList.add('on')}
-function lbx(el){lb(el.dataset.f,el.dataset.c)}
+
+/* lightbox tela cheia */
+let TABARR=[];
+function lbOpen(i){
+ const t=$('#lbtrk');
+ t.innerHTML=TABARR.map(x=>{const u=typeof x==='string'?x:x.u;return `<div><img src="${esc(px(u,1600))}" alt=""></div>`}).join('');
+ const n=TABARR.length;
+ $('#lbcnt').style.display=n>1?'':'none';
+ $('#lbarl').style.display=n>1?'':'none';
+ $('#lbarr').style.display=n>1?'':'none';
+ $('#lb').classList.add('on');
+ document.body.style.overflow='hidden';
+ requestAnimationFrame(()=>{t.scrollLeft=i*t.clientWidth;lbUpd()});
+}
+function lbStep(){const t=$('#lbtrk');return t?t.clientWidth:0}
+function lbUpd(){
+ const t=$('#lbtrk');if(!t)return;const n=t.children.length;if(!n)return;
+ const st=lbStep(),max=t.scrollWidth-t.clientWidth;
+ let idx=st?Math.round(t.scrollLeft/st):0;if(t.scrollLeft>=max-4)idx=n-1;idx=Math.max(0,Math.min(n-1,idx));
+ $('#lbcnt').textContent=(idx+1)+'/'+n;
+ $('#lbarl').classList.toggle('off',idx===0);
+ $('#lbarr').classList.toggle('off',idx===n-1);
+}
+function lbGo(d){const t=$('#lbtrk');if(t)t.scrollBy({left:d*lbStep(),behavior:'smooth'})}
+function closeLb(){$('#lb').classList.remove('on');$('#lbtrk').innerHTML='';document.body.style.overflow=''}
+document.addEventListener('keydown',e=>{if(!$('#lb').classList.contains('on'))return;if(e.key==='Escape')closeLb();if(e.key==='ArrowLeft')lbGo(-1);if(e.key==='ArrowRight')lbGo(1)});
+window.addEventListener('resize',()=>{if($('#lb').classList.contains('on'))lbUpd()});
 
 /* formulário */
 $('#lead').addEventListener('submit',async e=>{
