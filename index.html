@@ -195,10 +195,11 @@ const SAMPLES=[
 {id:'s2',title:'Edifício Glacial',region:'Centro',beds:2,baths:1,park:1,area:64,price:520000,desc:'Projeto compacto e inteligente, perto de metrô e comércio. Ideal para morar ou investir.'},
 {id:'s3',title:'Neve Park Home',region:'Zona Oeste',beds:4,baths:4,park:3,area:156,price:1650000,desc:'Cobertura duplex com terraço, vista livre e ambientes planejados para receber.'},
 {id:'s4',title:'Studio Cristal',region:'Centro',beds:1,baths:1,park:1,area:38,price:310000,desc:'Studio moderno, mobiliado e pronto para morar, com lazer completo no condomínio.'}];
+const WEB3FORMS_KEY='01322cfa-d8df-40e8-9598-b343f97ef861';
 let APTS=[],db=null,assets=null,user=null,WA='5511999999999',isAdm=false,cur=null;
 const waLink=t=>'https://wa.me/'+WA+'?text='+encodeURIComponent(t||'Olá! Vim pelo site Neve Broken e gostaria de mais informações.');
 function setWA(){['waTop','waMain'].forEach(i=>{const e=$('#'+i);if(e)e.href=waLink()})}
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const coverOf=(a,i)=>a.cover?`background-image:url(${esc(a.cover)})`:`background:${GRAD[i%4]}`;
 function ph(a){return a.cover?'':'<svg class="ph" style="color:#fff"><use href="#sf"/></svg>'}
 
@@ -250,9 +251,9 @@ function lb(u){$('#lbi').src=u;$('#lb').classList.add('on')}
 /* formulário */
 $('#lead').addEventListener('submit',async e=>{
  e.preventDefault();const n=$('#ln').value.trim(),m=$('#le').value.trim(),p=$('#lp').value.trim();
- if(!n||!/^\S+@\S+\.\S+$/.test(m)||p.replace(/\D/g,'').length<10){alert('Preencha nome, e-mail válido e telefone com DDD.');return}
+ if(!n||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)||p.replace(/\D/g,'').length<10){alert('Preencha nome, e-mail válido e telefone com DDD.');return}
  const b=e.target.querySelector('button');b&&(b.disabled=true);
- try{const r=await fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,email:m,phone:p,message:$('#lm').value.trim(),apt_id:lastApt,website:$('#hp').value})});if(!r.ok)throw 0;$('#ok').style.display='block';e.target.reset()}catch(x){alert('Não foi possível enviar agora. Tente pelo WhatsApp.')}
+ try{if($('#hp').value)throw 0;const ap=(APTS.find(a=>a.id===lastApt)||{}).title||'Geral';const r=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({access_key:WEB3FORMS_KEY,subject:'Novo lead - Neve Broken ('+ap+')',from_name:'Site Neve Broken',name:n,email:m,phone:p,empreendimento:ap,message:$('#lm').value.trim()||'(sem mensagem)'})});const j=await r.json();if(!j.success)throw 0;$('#ok').style.display='block';e.target.reset()}catch(x){alert('Não foi possível enviar agora. Tente pelo WhatsApp.')}
  b&&(b.disabled=false);
 });
 
