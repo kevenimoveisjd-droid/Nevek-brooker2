@@ -554,7 +554,7 @@ fetch('/api/apartments').then(r=>r.json()).then(d=>{if(d.wa){WA=d.wa;setWA()}if(
 /* ===== Chat com assistente virtual =====
    ⚙️ COLE AQUI o endereço do seu Worker da Cloudflare, terminando em /api/chat
    (exemplo: https://meu-bot.meuusuario.workers.dev/api/chat) */
-const CHAT_API='https://SEU-WORKER.SEU-USUARIO.workers.dev/api/chat';
+const CHAT_API='https://chat-bot.kevenlopreso.workers.dev/';
 
 (()=>{
  const KEY='nbchat',IDLE=60000,RE_IMG=/(https?:\/\/[^\s]+?\.(?:png|jpe?g|webp))/gi;
