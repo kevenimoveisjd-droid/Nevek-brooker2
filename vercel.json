@@ -3,10 +3,7 @@
   "trailingSlash": false,
   "buildCommand": "node build-seo.mjs",
   "outputDirectory": ".",
-  "rewrites": [
-    { "source": "/entrada", "destination": "/simulacao-entrada.html" }
-  ],
   "redirects": [
-    { "source": "/simulacao-entrada", "destination": "/entrada", "permanent": true }
+    { "source": "/entrada", "destination": "/simulacao-entrada", "permanent": true }
   ]
 }
