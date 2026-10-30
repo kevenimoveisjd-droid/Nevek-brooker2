@@ -1,4 +1,4 @@
-// Gera o SEO do site: uma página por apartamento, uma por bairro, sitemap.xml e robots.txt.
+// Gera o SEO do site: uma página por apartamento, uma por bairro, a página /entrada (simulador), sitemap.xml e robots.txt.
 // Uso:  node build-seo.mjs
 // Os apartamentos são lidos do próprio index.html (a lista "const S=[ ... ]").
 // O endereço do site vem da variável SITE_URL (ou do seo.config.json).
@@ -235,12 +235,68 @@ ${cards}
 </div>
 <a class="o" href="/#contato">Falar com a gente</a>
 <nav class="l" aria-label="Outras regiões"><b>Outras regiões:</b><br>${outros}</nav></main>
-<footer><div class="w">© 2026 ${esc(NOME)} · Todos os direitos reservados</div></footer></body></html>`;
+<footer><div class="w">© 2026 ${esc(NOME)} · Todos os direitos reservados · <a href="/calculadora">Calculadora de financiamento</a> · <a href="/entrada">Simulador de entrada</a></div></footer></body></html>`;
   escreve(`bairro/${slug(r)}/index.html`, pagina);
 }
 
+// ---------- página /entrada (simulador de entrada na planta) ----------
+// O arquivo simulacao-entrada.html (servido em /entrada pelo vercel.json) é a própria página; aqui só atualizamos o SEO dela (título, meta, dados estruturados e perguntas frequentes).
+const URL_ENTRADA = "/entrada";
+const FAQ_ENTRADA = [
+  ["Como funciona a entrada de um apartamento na planta?",
+   "A entrada é dividida em partes: o ato (pago na assinatura), as parcelas mensais até a entrega, as parcelas anuais (opcionais) e a parcela das chaves (opcional). O restante do valor é financiado na entrega das chaves."],
+  ["Qual é o valor mínimo da entrada no simulador?",
+   "O simulador trabalha com entrada de 20% a 90% do valor do imóvel. O ato mínimo considerado é de R$ 5.000, e atos abaixo de R$ 10.000 ficam sujeitos a aprovação da construtora."],
+  ["Posso montar o plano de pagamento do meu jeito?",
+   "Sim. Você pode ajustar ato, mensais, anuais e chaves. Ao aumentar uma parte, as outras diminuem para compensar; ao diminuir, o simulador mostra quanto falta para fechar a entrada."],
+  ["O que é a sugestão da imobiliária?",
+   "É um plano de referência com 8% do valor do imóvel no ato e 7% nas chaves, dividindo o restante entre parcelas anuais e mensais. Você pode alterar qualquer valor depois."],
+  ["As condições da simulação são definitivas?",
+   "Não. A simulação é uma referência: valores, prazos e condições finais dependem de cada construtora e de aprovação. Envie a simulação pelo WhatsApp para ver opções reais com esse plano."],
+];
+const ENTRADA_ARQ = path.join(RAIZ, "simulacao-entrada.html");
+if (fs.existsSync(ENTRADA_ARQ)) {
+  const tituloE = corta(`Simulador de entrada de apartamento na planta | ${NOME}`, 70);
+  const descE = corta(
+    "Simule a entrada do seu apartamento na planta: ato, parcelas mensais, anuais e chaves. Monte o plano de pagamento e envie pelo WhatsApp.",
+    158
+  );
+  const ldE = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "Simulador de entrada de apartamento na planta",
+      url: abs(URL_ENTRADA),
+      description: descE,
+      applicationCategory: "FinanceApplication",
+      operatingSystem: "Any",
+      inLanguage: "pt-BR",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
+      publisher: { "@type": "Organization", name: NOME, url: abs("/") },
+    },
+    breadcrumb([["Início", "/"], ["Simulador de entrada", URL_ENTRADA]]),
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: FAQ_ENTRADA.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+    },
+  ];
+  const headE =
+    metaBasica({ titulo: tituloE, descricao: descE, url: URL_ENTRADA, imagem: apts.find((a) => a.cover)?.cover, homeTitle: HOME_TITLE }) +
+    "\n" + ldE.map((o) => `<script type="application/ld+json">${json(o)}</script>`).join("\n");
+  const faqE =
+    `<h2 id="faqh">Dúvidas sobre a entrada na planta</h2>\n` +
+    FAQ_ENTRADA.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("\n") +
+    `\n<p class="more">Quer simular o financiamento do saldo? Use a <a href="/calculadora">calculadora de financiamento</a> ou veja os <a href="/">apartamentos disponíveis</a>.</p>`;
+  let e = fs.readFileSync(ENTRADA_ARQ, "utf8");
+  e = e.replace(/<title>[^<]*<\/title>/, `<title>${esc(tituloE)}</title>`);
+  e = trocaEntre(e, "seo-head", headE);
+  e = trocaEntre(e, "seo-faq", faqE);
+  fs.writeFileSync(ENTRADA_ARQ, e);
+}
+
 // ---------- sitemap e robots ----------
-const urls = ["/", "/calculadora", ...bairros.map(urlBairro), ...apts.map(urlApt)];
+const urls = ["/", "/entrada", "/calculadora", ...bairros.map(urlBairro), ...apts.map(urlApt)];
 
 // lista enxuta de apartamentos para a página /calculadora (sugestões por localização)
 escreve(
