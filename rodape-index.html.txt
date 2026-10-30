@@ -1,0 +1,1 @@
+<footer>© 2026 Neve Broken · Todos os direitos reservados · <a href="/calculadora" style="color:inherit;text-decoration:underline">Calculadora de financiamento</a> · <a href="/entrada" style="color:inherit;text-decoration:underline">Simulador de entrada</a></footer>
