@@ -2,5 +2,11 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "buildCommand": "node build-seo.mjs",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "rewrites": [
+    { "source": "/entrada", "destination": "/simulacao-entrada.html" }
+  ],
+  "redirects": [
+    { "source": "/simulacao-entrada", "destination": "/entrada", "permanent": true }
+  ]
 }
